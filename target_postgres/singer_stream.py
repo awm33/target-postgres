@@ -96,7 +96,7 @@ class BufferedSingerStream():
                 'format': 'date-time'
             }
 
-        if len(self.key_properties) == 0:
+        if self.key_properties is None or len(self.key_properties) == 0:
             self.use_uuid_pk = True
             self.key_properties = [singer.PK]
             properties[singer.PK] = {
