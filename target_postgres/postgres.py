@@ -1,5 +1,6 @@
 from copy import deepcopy
 import csv
+from functools import lru_cache
 import io
 import json
 import logging
@@ -19,6 +20,14 @@ from target_postgres.sql_base import SEPARATOR, SQLInterface
 
 RESERVED_NULL_DEFAULT = 'NULL'
 
+@lru_cache(maxsize=128)
+def _format_datetime(value):
+    """
+    Format a datetime value. This is only called from the
+    PostgresTarget.serialize_table_record_datetime_value
+    but this non-method version allows caching
+    """
+    return arrow.get(value).format('YYYY-MM-DD HH:mm:ss.SSSSZZ')
 
 def _update_schema_0_to_1(table_metadata, table_schema):
     """
@@ -546,7 +555,7 @@ class PostgresTarget(SQLInterface):
         return value
 
     def serialize_table_record_datetime_value(self, remote_schema, streamed_schema, field, value):
-        return arrow.get(value).format('YYYY-MM-DD HH:mm:ss.SSSSZZ')
+        return _format_datetime(value)
 
     def persist_csv_rows(self,
                          cur,
